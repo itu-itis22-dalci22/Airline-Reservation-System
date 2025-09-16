@@ -25,7 +25,7 @@ public class Flight {
         return id;
     }
     public String getFlightInfo(){
-        return "FlightId: " + id + " origin: " + origin + " destination " + destination  + " dateTime: " + dateTime  + " totalSeats: " + totalSeats ;
+        return "FlightId: " + id + " origin: " + origin + " destination: " + destination  + " dateTime: " + dateTime  + " totalSeats: " + totalSeats ;
     }
     public void reduceAvailableSeats(Integer seatNumber){
         availableSeats.remove(seatNumber);
