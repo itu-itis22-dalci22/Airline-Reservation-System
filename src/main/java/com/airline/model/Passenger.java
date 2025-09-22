@@ -1,29 +1,36 @@
 package com.airline.model;
 
 import com.airline.service.Operations;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Entity
+@Table(name = "Passengers")
 public class Passenger {
-    static int counter = 0;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "passenger_id")
     private int id;
     private String name;
     private String email;
 
-//    public Passenger(String name, String email){
-//        counter ++;
-//        this.id = counter;
-//        this.name = name;
-//        this.email = email;
-//    }
-//
-//    public Integer getId(){
-//        return id;
-//    }
-//    public String getInfoPassenger(){
-//        return " name : " + name + " email: " + email;
-//    }
+    public Passenger() {}
+
+    public Passenger(String name, String email){
+        this.name = name;
+        this.email = email;
+    }
+
+    public String getInfoPassenger(){
+        return " name : " + name + " email: " + email;
+    }
+
+    public int getId() {
+        return id;
+    }
+
 //    public void bookFlightFromService(Integer flightId, Integer seatNumber){
 //        Operations.bookFlight(this, flightId, seatNumber);
 //    }

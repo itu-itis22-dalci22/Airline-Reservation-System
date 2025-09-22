@@ -1,39 +1,59 @@
 package com.airline.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDate;
-import java.util.HashSet;
 
+@Entity
+@Table(name = "Flights")
 public class Flight {
-    private static int counter = 0;
-    private Integer id = 1;
-    private String origin, destination;
-    private LocalDate dateTime;
-    private int totalSeats;
-    private HashSet<Integer> availableSeats;
 
-    public Flight(String origin, String destination, LocalDate dateTime, int totalSeats){
-        counter++;
-        this.id = counter;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "flight_id")
+    private Integer id;
+
+    private String origin;
+    private String destination;
+
+    @Column(name = "flight_date")
+    private LocalDate flightDate;
+
+    @Column(name = "total_seats")
+    private int totalSeats;
+
+    @Column(name = "available_seats")
+    private int availableSeats;
+
+    // 🔹 REQUIRED by JPA
+    public Flight() {}
+
+    // Business constructor
+    public Flight(String origin, String destination, LocalDate flightDate, int totalSeats) {
         this.origin = origin;
         this.destination = destination;
-        this.dateTime = dateTime;
+        this.flightDate = flightDate;
         this.totalSeats = totalSeats;
-        this.availableSeats = new HashSet<>();
+        this.availableSeats = totalSeats;  // all seats available initially
     }
 
-    public Integer getId(){
+    public Integer getId() {
         return id;
     }
-    public String getFlightInfo(){
-        return "FlightId: " + id + " origin: " + origin + " destination: " + destination  + " dateTime: " + dateTime  + " totalSeats: " + totalSeats ;
+
+    public String getFlightInfo() {
+        return String.format(
+                "FlightId: %d | %s → %s | Date: %s | Seats: %d/%d",
+                id, origin, destination, flightDate, availableSeats, totalSeats
+        );
     }
-    public void reduceAvailableSeats(Integer seatNumber){
-        availableSeats.remove(seatNumber);
+
+    public void reduceAvailableSeats() {
+        if (availableSeats > 0) {
+            availableSeats--;
+        }
     }
-    public void increaseAvailableSeats(int seatNumber){
-        availableSeats.add(seatNumber);
-    }
-    public boolean hasSeatsLeft(){
-        return false;
+
+    public boolean hasSeatsLeft() {
+        return availableSeats > 0;
     }
 }

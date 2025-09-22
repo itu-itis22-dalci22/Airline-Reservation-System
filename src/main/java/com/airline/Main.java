@@ -1,72 +1,98 @@
 package com.airline;
-import com.airline.model.Flight;
-import com.airline.service.Operations;
 
-import java.sql.*;
+import com.airline.model.Flight;
+import com.airline.model.Passenger;
+import com.airline.service.BookingService;
+import com.airline.service.FlightService;
+import com.airline.service.PassengerService;
+import jakarta.persistence.EntityManager;
+import com.airline.util.jpaUtil;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Main {
-    public static void main(String[] args){
-        String url = "jdbc:mysql://localhost:3306/airline_db";
-        String user = "root";
-        String password = "2011";
+    public static void main(String[] args) {
+        EntityManager em = jpaUtil.getEntityManager();
 
-        try (Connection conn = DriverManager.getConnection(url,user,password)){
-            Scanner userObj = new Scanner(System.in);
-            while (true){
-                System.out.println("Options:");
-                System.out.println("1-Search a Flight");
-                System.out.println("2-Book a Flight");
-                System.out.println("3-Cancel a Flight");
-                System.out.println("4-View my Flights");
+        FlightService flightService = new FlightService(em);
+        PassengerService passengerService = new PassengerService(em);
+        BookingService bookingService = new BookingService(em);
 
-                String answer = userObj.nextLine();
+        // Hardcoded first passenger (simulate login)
+        Passenger currentPassenger = new Passenger("CagriDssalscı", "dalaci@s2itu.com");
+        passengerService.registerPassenger(currentPassenger);
 
-                switch (answer){
-                    case "1":
-                        System.out.print("Enter origin: ");
-                        String origin = userObj.nextLine().strip();
+        Scanner userObj = new Scanner(System.in);
+        while (true) {
+            System.out.println("Options:");
+            System.out.println("1-Search a Flight");
+            System.out.println("2-Book a Flight");
+            System.out.println("3-Cancel a Flight");
+            System.out.println("4-View my Flights");
+            System.out.println("5-Exit");
 
-                        System.out.print("Enter destination: ");
-                        String destination = userObj.nextLine().strip();
+            String answer = userObj.nextLine();
 
-                        System.out.print("Enter date (YYYY-MM-DD): ");
-                        String dateInput = userObj.nextLine().strip();
-                        LocalDate flightDate = LocalDate.parse(dateInput);
+            switch (answer) {
+                case "1":
+                    System.out.print("Enter origin: ");
+                    String origin = userObj.nextLine().strip();
 
-                        List<Flight> searchedFlights = Operations.searchFlights(conn, origin, destination, flightDate);
-                        for(Flight flight:searchedFlights){
+                    System.out.print("Enter destination: ");
+                    String destination = userObj.nextLine().strip();
+
+                    System.out.print("Enter date (YYYY-MM-DD): ");
+                    String dateInput = userObj.nextLine().strip();
+                    LocalDate flightDate = LocalDate.parse(dateInput);
+
+                    List<Flight> searchedFlights = flightService.searchFlights(origin, destination, flightDate);
+                    if (searchedFlights.isEmpty()) {
+                        System.out.println("No flights found.");
+                    } else {
+                        for (Flight flight : searchedFlights) {
                             System.out.println(flight.getFlightInfo());
                         }
-                        break;
-                    case "2":
-                        System.out.print("Enter Flight Id");
-                        Integer flightId = userObj.nextInt();
+                    }
+                    break;
 
-                        System.out.print("Enter Seat Number");
-                        Integer seatNum = userObj.nextInt();
+                case "2":
+                    System.out.print("Enter Flight Id: ");
+                    int flightId = Integer.parseInt(userObj.nextLine());
 
-                        Operations.bookFlight(conn,1,flightId,seatNum);
-                        break;
-                    case "3":
-                        System.out.print("Enter Booking Id");
-                        Integer bookingId = userObj.nextInt();
+                    System.out.print("Enter Seat Number: ");
+                    int seatNum = Integer.parseInt(userObj.nextLine());
 
-                        Operations.cancelBooking(conn,bookingId);
-                        break;
-                    case "4":
-                        Operations.viewBookings(conn,1);
-                        break;
-                }
+                    try {
+                        bookingService.bookFlight(currentPassenger, flightService.getFlightById(flightId), seatNum);
+                        System.out.println("Booking successful!");
+                    } catch (Exception e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
+
+                case "3":
+                    System.out.print("Enter Booking Id: ");
+                    int bookingId = Integer.parseInt(userObj.nextLine());
+
+                    bookingService.cancelBooking(bookingId);
+                    System.out.println("Booking cancelled.");
+                    break;
+
+                case "4":
+                    passengerService.showBookings(currentPassenger.getId());
+                    break;
+
+                case "5":
+                    System.out.println("Goodbye!");
+                    em.close();
+                    return;
+
+                default:
+                    System.out.println("Invalid option. Try again.");
             }
-        } catch (SQLException e){
-            e.printStackTrace();
         }
-
-
-
     }
-
 }
